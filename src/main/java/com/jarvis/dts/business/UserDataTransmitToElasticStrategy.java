@@ -13,7 +13,7 @@ import com.jarvis.dts.strategy.BaseDataTransmitToElasticStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 处理user表数据
+ * 处理user表数据的策略
  * 
  * @Author: Hu Xin
  * @Date: 2021/4/1 21:41

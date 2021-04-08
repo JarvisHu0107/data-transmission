@@ -1,9 +1,8 @@
 package com.jarvis.dts.strategy;
 
 import com.jarvis.dts.canal.constant.RowEventTypeEnum;
-import com.jarvis.dts.strategy.DataTransmitStrategy;
 
-/**
+/** 数据传输策略抽象类
  * @Author: Hu Xin
  * @Date: 2021/4/1 21:32
  * @Desc:

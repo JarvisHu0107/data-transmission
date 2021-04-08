@@ -1,6 +1,6 @@
 package com.jarvis.dts.strategy;
 
-/**
+/** 入库到ES的策略基础类
  * @Author: Hu Xin
  * @Date: 2021/4/8 12:26
  * @Desc:

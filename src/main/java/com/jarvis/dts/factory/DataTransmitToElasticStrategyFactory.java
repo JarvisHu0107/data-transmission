@@ -13,7 +13,7 @@ import com.jarvis.dts.strategy.BaseDataTransmitToElasticStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 工厂 - 数据传输到ES的策略
+ * 工厂 - 数据传输到ES的策略生成器
  *
  * @Author: Hu Xin
  * @Date: 2021/4/1 15:34
