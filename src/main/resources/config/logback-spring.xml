@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
+    <!--<property name="LOG_HOME" value="D:/logs/" />-->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <springProfile name="local">
+        <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
+        <property name="LOG_HOME" value="./logs/"/>
+    </springProfile>
+
+    <springProfile name="dev,test,prod">
+        <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
+        <property name="LOG_HOME" value="./logs/"/>
+    </springProfile>
+
+    <!-- 控制台输出 -->
+    <!--pattern 格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度，%msg：日志消息，%n是换行符 -->
+    <property name="LOG_PATTERN"
+              value="${LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([%thread]){faint} %clr(%logger{50}:%5L){cyan}%clr(:){faint}%m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/sms-user-center.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/sms-user-center.log.%d{yyyy-MM-dd}.%i.gz</FileNamePattern>
+            <!--文件达到 最大128MB时会被压缩和切割 -->
+            <maxFileSize>1GB</maxFileSize>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${LOG_PATTERN}</pattern>
+            <!-- [%5level][%d{yyyy-MM-dd HH:mm:ss.SSS}][%thread][%logger{50}][%method][%5L] - %msg%n -->
+        </encoder>
+    </appender>
+
+    <!-- 日志输出级别 -->
+    <springProfile name="local">
+        <root level="DEBUG">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="test,prod">
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+</configuration>

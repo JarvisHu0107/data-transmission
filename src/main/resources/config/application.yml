@@ -1,0 +1,49 @@
+logging:
+  config: classpath:config/logback-spring.xml
+
+spring:
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  application:
+    name: sms-es
+  profiles:
+    active: local
+  elasticsearch:
+    rest:
+      uris: 8.136.141.6:9200
+      username: elastic
+      password: zy@123
+
+
+canal-server:
+  config:
+    mappings:
+      - serverConfig:
+          ip: 101.37.71.22
+          port: 11111
+          destination: example
+          username: canal
+          password: canal
+          batch-size: 5120
+        factory: es
+        taskName: smsNew
+      - serverConfig:
+          ip: 101.37.71.22
+          port: 11111
+          destination: test
+          username: canal
+          password: canal
+          batch-size: 5120
+        factory: es
+        taskName: test
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,15 @@
+{
+  "analysis": {
+    "analyzer": {
+      "semicolon_analyzer": {
+        "tokenizer": "semicolon_tokenizer"
+      }
+    },
+    "tokenizer": {
+      "semicolon_tokenizer": {
+        "type": "pattern",
+        "pattern": ";"
+      }
+    }
+  }
+}

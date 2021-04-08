@@ -1,0 +1,67 @@
+{
+  "properties": {
+    "msg_id": {
+      "type": "long"
+    },
+    "user_msg_id": {
+      "type": "keyword"
+    },
+    "gateway_msg_id": {
+      "type": "text",
+      "analyzer": "semicolon_analyzer"
+    },
+    "user_id": {
+      "type": "long"
+    },
+    "institution_id": {
+      "type": "long"
+    },
+    "app_id": {
+      "type": "long"
+    },
+    "sp": {
+      "type": "keyword"
+    },
+    "telephone": {
+      "type": "keyword"
+    },
+    "charging_count": {
+      "type": "integer"
+    },
+    "msg_content": {
+      "type": "text",
+      "analyzer": "ik_max_word"
+    },
+    "send_time": {
+      "type": "date"
+    },
+    "send_status": {
+      "type": "keyword"
+    },
+    "send_detail": {
+      "type": "text"
+    },
+    "report_status": {
+      "type": "keyword"
+    },
+    "report_detail": {
+      "type": "text",
+      "analyzer": "semicolon_analyzer"
+    },
+    "channel_id": {
+      "type": "long"
+    },
+    "sp_no": {
+      "type": "keyword"
+    },
+    "ext_no": {
+      "type": "keyword"
+    },
+    "create_time": {
+      "type": "date"
+    },
+    "update_time": {
+      "type": "date"
+    }
+  }
+}
