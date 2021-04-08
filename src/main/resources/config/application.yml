@@ -12,16 +12,16 @@ spring:
     active: local
   elasticsearch:
     rest:
-      uris: 8.136.141.6:9200
+      uris: localhost:9200
       username: elastic
-      password: zy@123
+      password: elastic
 
 
 canal-server:
   config:
     mappings:
       - serverConfig:
-          ip: 101.37.71.22
+          ip: localhost
           port: 11111
           destination: example
           username: canal
@@ -30,7 +30,7 @@ canal-server:
         factory: es
         taskName: smsNew
       - serverConfig:
-          ip: 101.37.71.22
+          ip: localhost
           port: 11111
           destination: test
           username: canal
