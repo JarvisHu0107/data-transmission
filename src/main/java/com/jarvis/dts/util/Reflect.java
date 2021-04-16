@@ -24,28 +24,46 @@ public class Reflect {
      * @param <T>
      * @return
      */
-    public static <T> List<Method> getMethodbyName(Class<T> claxx, MethodHeadName methodHeadName,
-        Function<List<Method>, List<Method>> function) {
+    public static <T> List<Method> getDeclaredMethodByName(Class<T> claxx, MethodHeadName methodHeadName, Function<List<Method>, List<Method>> function) {
         String name = methodHeadName.name;
         List<Method> methodList;
         Map<String, Method> methodMap;
-        methodMap = Arrays.stream(claxx.getMethods()).filter(method -> method.getName().contains(name))
-            .collect(Collectors.toMap(Method::getName, method -> method, (k1, k2) -> k2));
+        methodMap = Arrays.stream(claxx.getMethods())
+                .filter(method -> method.getName().contains(name))
+                .collect(Collectors.toMap(Method::getName, method -> method, (k1, k2) -> k2));
 
-        methodList = Arrays.stream(claxx.getDeclaredFields()).map(field -> {
-            String fieldName = field.getName();
-            String methodName;
-            methodName = name + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-            return methodMap.get(methodName);
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-        methodList = methodList.size() == 0 ? Arrays.stream(claxx.getMethods())
-            .filter(method -> method.getName().contains(name)).collect(Collectors.toList()) : methodList;
+        methodList = Arrays.stream(claxx.getDeclaredFields())
+                .map(field -> {
+                    String fieldName = field.getName();
+                    String methodName;
+                    methodName = name + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                    return methodMap.get(methodName);
+                }).filter(Objects::nonNull).collect(Collectors.toList());
+        methodList = methodList.size() == 0 ? Arrays.stream(claxx.getMethods()).filter(method -> method.getName().contains(name)).collect(Collectors.toList()) : methodList;
         if (function != null) {
             methodList = function.apply(methodList);
         }
 
         return methodList;
     }
+
+    public static <T> List<Method> getMethodByName(Class<T> claxx, MethodHeadName methodHeadName, Function<List<Method>, List<Method>> function) {
+        String name = methodHeadName.name;
+        List<Method> methodList;
+        Map<String, Method> methodMap;
+        methodMap = Arrays.stream(claxx.getMethods())
+                .filter(method -> method.getName().contains(name))
+                .collect(Collectors.toMap(Method::getName, method -> method, (k1, k2) -> k2));
+
+        methodList = methodMap.values().stream().collect(Collectors.toList());
+        methodList = methodList.size() == 0 ? Arrays.stream(claxx.getMethods()).filter(method -> method.getName().contains(name)).collect(Collectors.toList()) : methodList;
+        if (function != null) {
+            methodList = function.apply(methodList);
+        }
+
+        return methodList;
+    }
+
 
     public enum MethodHeadName {
         GET("get"), SET("set");
@@ -56,5 +74,7 @@ public class Reflect {
             this.name = name;
         }
     }
+
+
 
 }

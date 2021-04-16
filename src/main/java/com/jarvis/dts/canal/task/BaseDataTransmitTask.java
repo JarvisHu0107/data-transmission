@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import com.google.common.base.CaseFormat;
 import com.jarvis.dts.annotation.Strategy;
@@ -245,6 +246,9 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
      * @return
      */
     private Object convertString2JavaObject(String sourceValue, Class<?> targetType) {
+        if(StringUtils.isEmpty(sourceValue)){
+            return null;
+        }
         if (targetType == String.class) {
             return sourceValue;
         } else if (targetType == Integer.class) {
@@ -276,7 +280,7 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
         if (CollectionUtils.isEmpty(stringMethodConcurrentHashMap)) {
             stringMethodConcurrentHashMap = new ConcurrentHashMap<>();
             // 找不到类对应的信息
-            List<Method> setMethods = Reflect.getMethodbyName(cls, Reflect.MethodHeadName.SET, null);
+            List<Method> setMethods = Reflect.getMethodByName(cls, Reflect.MethodHeadName.SET, null);
             for (CanalColumn column : columnList) {
                 String name = underlineToCamel(column.getColumnName());
                 String setMethodName =
