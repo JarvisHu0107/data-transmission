@@ -84,7 +84,14 @@ public abstract class AbstractDataTransmitTask {
             try {
                 MDC.put("destination", destination);
                 doConnect();
-                while (running.get()) {
+                while (running.get() && connector.checkValid()) {
+                    while (!connector.checkValid()) {
+                        connector.disconnect();
+                        log.error("连接不可用，休眠5秒后，再次尝试...");
+                        LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
+                        doConnect();
+                    }
+                    log.debug("连接可用，开始拉取数据...");
                     // 获取指定数量的数据
                     Message message = connector.getWithoutAck(batchSize);
                     if (null == message) {
@@ -98,6 +105,8 @@ public abstract class AbstractDataTransmitTask {
                             // 休眠5秒
                             LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
                         } else {
+                            log.debug("task:{},there are 【{}】 entries needed to be processed,batchId is {}...",
+                                    this.getClass().getSimpleName(), size, batchId);
                             List<CanalRowEvent> rowEventList = parseMessage(message);
                             doProcess(rowEventList);
                         }
@@ -108,10 +117,11 @@ public abstract class AbstractDataTransmitTask {
                     }
                 }
             } catch (Throwable e) {
-                log.error("dts task 【" + this.getClass() + "】 process error!", e);
+                log.error("dts task 【" + this.getClass().getSimpleName() + "】 process error!", e);
                 connector.rollback(); // 处理失败, 回滚数据
             } finally {
                 connector.disconnect();
+                log.info("task:{},连接关闭....", this.getClass().getSimpleName());
                 MDC.remove("destination");
             }
         }

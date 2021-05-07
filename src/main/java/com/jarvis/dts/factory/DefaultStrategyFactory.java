@@ -1,5 +1,8 @@
 package com.jarvis.dts.factory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import com.jarvis.dts.strategy.DefaultDataTransmitStrategy;
@@ -15,7 +18,9 @@ import com.jarvis.dts.strategy.DefaultDataTransmitStrategy;
 public class DefaultStrategyFactory implements StrategyFactory<DefaultDataTransmitStrategy> {
 
     @Override
-    public DefaultDataTransmitStrategy createStrategy(String schema, String table) {
-        return new DefaultDataTransmitStrategy();
+    public List<DefaultDataTransmitStrategy> createStrategy(String schema, String table) {
+        List<DefaultDataTransmitStrategy> list = new ArrayList<>();
+        list.add(new DefaultDataTransmitStrategy());
+        return list;
     }
 }

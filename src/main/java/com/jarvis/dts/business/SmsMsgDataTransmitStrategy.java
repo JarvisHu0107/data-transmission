@@ -14,7 +14,7 @@ import com.jarvis.dts.business.doc.SmsMsgDoc;
 import com.jarvis.dts.business.entity.SmsMsg;
 import com.jarvis.dts.business.mapstruct.SmsMsgDocStructMapper;
 import com.jarvis.dts.business.repository.SmsMsgDocRepository;
-import com.jarvis.dts.strategy.BaseDataTransmitToElasticStrategy;
+import com.jarvis.dts.strategy.BaseDataTransmitStrategy;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Strategy(schema = "sms_new", table = "sms_msg", pk = {"msg_id"})
 @Component
 @Slf4j
-public class SmsMsgDataTransmitToElasticStrategy extends BaseDataTransmitToElasticStrategy<SmsMsg> {
+public class SmsMsgDataTransmitStrategy extends BaseDataTransmitStrategy<SmsMsg> {
 
     @Autowired
     private SmsMsgDocStructMapper smsMsgDocStructMapper;

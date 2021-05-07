@@ -8,7 +8,7 @@ import com.jarvis.dts.business.doc.UserDoc;
 import com.jarvis.dts.business.entity.User;
 import com.jarvis.dts.business.mapstruct.UserDocStructMapper;
 import com.jarvis.dts.business.repository.UserDocRepository;
-import com.jarvis.dts.strategy.BaseDataTransmitToElasticStrategy;
+import com.jarvis.dts.strategy.BaseDataTransmitStrategy;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Strategy(schema = "test", table = "user", pk = {"id"})
 @Component
 @Slf4j
-public class UserDataTransmitToElasticStrategy extends BaseDataTransmitToElasticStrategy<User> {
+public class UserDataTransmitStrategy extends BaseDataTransmitStrategy<User> {
 
     @Autowired
     private UserDocStructMapper userDocStructMapper;

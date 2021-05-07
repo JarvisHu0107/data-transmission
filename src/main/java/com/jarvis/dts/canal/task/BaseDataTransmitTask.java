@@ -64,36 +64,55 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
             /**
              * 1.创建对应策略
              */
-            DataTransmitStrategy strategy = createStrategy(customizedSchema, customizedTable);
-            if (strategy == null) {
-                log.info("找不到schema:{},table:{},converted-schema:{},converted-table:{},对应的处理策略，跳过此行的处理", schema, table,
-                    customizedSchema, customizedTable);
-                return;
+            List<DataTransmitStrategy> strategyList = createStrategy(customizedSchema, customizedTable);
+            if (CollectionUtils.isEmpty(strategyList)) {
+                log.debug("找不到schema:{},table:{},converted-schema:{},converted-table:{},对应的处理策略，跳过此行的处理", schema, table,
+                        customizedSchema, customizedTable);
+                continue;
             }
             // 操作类型
             RowEventTypeEnum eventType = row.getEventType();
-            log.debug("eventType:{},strategy:{},schema:{},table:{},row:{}", eventType, strategy.getClass(), schema,
-                table, row);
+
+            /**
+             * 再做一次清洗成entity 2.根据策略上指定的entity,将row生成对应instance。 如果使用的是默认的策略
+             * {@link com.jarvis.dts.strategy.DefaultDataTransmitStrategy}，则只是打印出CanalRowEvent信息 strategyList中 对同一个表
+             * 对应的实体必须是同一个
+             */
+            checkStrategyForEntityIsSame(strategyList);
+
+
             /**
              * 再做一次清洗成entity 2.根据策略上指定的entity,将row生成对应instance。 如果使用的是默认的策略
              * {@link com.jarvis.dts.strategy.DefaultDataTransmitStrategy}，则只是打印出CanalRowEvent信息
              */
-            Class<?> clazz = strategy.getEntityType();
+            Class<?> clazz = strategyList.get(0).getEntityType();
 
             if (null == clazz) {
-                log.error("strategy:{},schema:{},table:{},找不到对应的实体类，跳过此行:{}的处理", strategy.getClass(), schema, table,
-                    row);
-                return;
+                log.error("strategy:{},schema:{},table:{},找不到对应的实体类，跳过此行:{}的处理", strategyList.get(0).getClass(), schema,
+                        table, row);
+                continue;
             }
 
             if (clazz != CanalRowEvent.class) {
-                Object instance = createInstance(clazz, row, strategy);
+                Object instance = createInstance(clazz, row, strategyList.get(0));
                 /**
                  * 3.根据操作类型，调用不同的处理方法
                  */
-                strategy.dispatchToMethod(eventType, instance);
+                for (DataTransmitStrategy strategy : strategyList) {
+                    try {
+                        strategy.dispatchToMethod(eventType, instance);
+                    } catch (Exception e) {
+                        log.error("策略:{},数据:{},执行报错...", strategy, instance, e);
+                    }
+                }
             } else {
-                strategy.dispatchToMethod(eventType, row);
+                for (DataTransmitStrategy strategy : strategyList) {
+                    try {
+                        strategy.dispatchToMethod(eventType, row);
+                    } catch (Exception e) {
+                        log.error("策略:{},数据:{},执行报错...", strategy, row, e);
+                    }
+                }
             }
 
         }
@@ -169,10 +188,11 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
      * @param table
      * @return
      */
-    protected DataTransmitStrategy createStrategy(String schema, String table) {
+    protected List<DataTransmitStrategy> createStrategy(String schema, String table) {
         if (strategyFactory != null) {
-            DataTransmitStrategy strategy = (DataTransmitStrategy)strategyFactory.createStrategy(schema, table);
-            return strategy;
+            List<DataTransmitStrategy> strategys =
+                    (List<DataTransmitStrategy>)strategyFactory.createStrategy(schema, table);
+            return strategys;
         } else {
             log.debug("schema:{},table:{},找不到配置的策略生成工厂...,请配置对应的工厂。。。", schema, table);
         }
@@ -314,6 +334,20 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
     public void init(CanalServerConfig config, StrategyFactory factory) {
         setCanalServerConfig(config);
         setStrategyFactory(factory);
+    }
+
+    private void checkStrategyForEntityIsSame(List<DataTransmitStrategy> strategyList) {
+        Class<?> clazz = strategyList.get(0).getEntityType();
+        for (DataTransmitStrategy strategy : strategyList) {
+            Class entityType = strategy.getEntityType();
+            if (clazz != entityType) {
+                log.error("针对同一张表的处理策略中，对应了不同的实体类..", clazz, entityType);
+                throw new RuntimeException("针对同一张表的处理策略中，对应了不同的实体类...");
+            } else {
+                clazz = entityType;
+            }
+
+        }
     }
 
 }
