@@ -51,7 +51,13 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
     private static ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Field>> classColumnFieldCache =
         new ConcurrentHashMap<>(2);
 
-    private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final String formatterMill = "yyyy-MM-dd HH:mm:ss.SSS";
+
+    private static final String formatter = "yyyy-MM-dd HH:mm:ss";
+
+    private static final String dateFormatter = "yyyy-MM-dd";
+
+    private static final DateTimeFormatter df = DateTimeFormatter.ofPattern(formatterMill);
 
     @Override
     protected void doProcess(List<CanalRowEvent> rows) {
@@ -132,6 +138,7 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
         try {
             List<CanalColumn> canalColumnList = row.getColumnList();
             Object instance = clazz.getConstructor().newInstance();
+            log.debug("createInstance,实例化结果instance :{},class:{}", instance, instance.getClass().getSimpleName());
             for (CanalColumn column : canalColumnList) {
                 if (!this.returnAllColumnsIgnoreModified) {
                     // 没有更新的 and 非主键字段，跳过
@@ -147,8 +154,12 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
                 if (null != method) {
                     // 默认set方法只允许有一个形参
                     Class<?>[] parameterTypes = method.getParameterTypes();
+                    Object fieldValue = convertString2JavaObject(columnValue, parameterTypes[0]);
+                    if (null == fieldValue) {
+                        continue;
+                    }
                     method.setAccessible(true);
-                    method.invoke(instance, convertString2JavaObject(columnValue, parameterTypes[0]));
+                    method.invoke(instance, fieldValue);
                 }
 
             }
@@ -266,23 +277,30 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
      * @return
      */
     private Object convertString2JavaObject(String sourceValue, Class<?> targetType) {
-        if(StringUtils.isEmpty(sourceValue)){
+        if (StringUtils.isEmpty(sourceValue)) {
             return null;
         }
-        if (targetType == String.class) {
-            return sourceValue;
-        } else if (targetType == Integer.class) {
-            return Integer.valueOf(sourceValue);
-        } else if (targetType == Long.class) {
-            return Long.valueOf(sourceValue);
-        } else if (targetType == Double.class) {
-            return Double.valueOf(sourceValue);
-        } else if (targetType == Date.class) {
-            LocalDateTime ldt = LocalDateTime.parse(sourceValue, df);
-            Date date = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
-            return date;
-        } else if (targetType == LocalDateTime.class) {
-            return LocalDateTime.parse(sourceValue, df);
+        try {
+            if (targetType == String.class) {
+                return sourceValue;
+            } else if (targetType == Integer.class) {
+                return Integer.valueOf(sourceValue);
+            } else if (targetType == Long.class) {
+                return Long.valueOf(sourceValue);
+            } else if (targetType == Double.class) {
+                return Double.valueOf(sourceValue);
+            } else if (targetType == Date.class) {
+                sourceValue = getStandardDate(sourceValue);
+                LocalDateTime ldt = LocalDateTime.parse(sourceValue, df);
+                Date date = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+                return date;
+            } else if (targetType == LocalDateTime.class) {
+                sourceValue = getStandardDate(sourceValue);
+                return LocalDateTime.parse(sourceValue, df);
+            }
+        } catch (Exception e) {
+            log.error("convertString2JavaObject 格式转化错误,sourceValue:{},targetType:{}", sourceValue,
+                    targetType.getSimpleName());
         }
         return null;
     }
@@ -323,7 +341,7 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
 
     /**
      * 下划线转驼峰
-     * 
+     *
      * @param columnName
      * @return
      */
@@ -349,5 +367,23 @@ public abstract class BaseDataTransmitTask extends AbstractDataTransmitTask {
 
         }
     }
+
+    /**
+     * 时间格式标准化
+     * @param sourceValue
+     * @return
+     */
+    private String getStandardDate(String sourceValue) {
+        String targetValue = sourceValue;
+        if (sourceValue.length() >= formatterMill.length()) {
+            targetValue = sourceValue.substring(0, formatterMill.length());
+        } else if (sourceValue.length() >= formatter.length()) {
+            targetValue = sourceValue.substring(0, formatter.length()) + ".000";
+        } else if (sourceValue.length() >= dateFormatter.length()) {
+            targetValue = sourceValue.substring(0, dateFormatter.length()) + " 00:00:00.000";
+        }
+        return targetValue;
+    }
+
 
 }
