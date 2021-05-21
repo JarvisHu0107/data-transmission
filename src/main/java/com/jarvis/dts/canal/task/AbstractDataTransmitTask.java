@@ -100,14 +100,16 @@ public abstract class AbstractDataTransmitTask {
                         long batchId = message.getId();
                         int size = message.getEntries().size();
                         if (batchId == -1 || size == 0) {
-                            log.debug("there is no entries needed to be processed,batchId is {} or size is {}...",
-                                batchId, size);
+                            log.info(
+                                    "task:{},there is no entries needed to be processed,batchId is {} or size is {}...",
+                                    this.getClass().getSimpleName(), batchId, size);
                             // 休眠5秒
                             LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
                         } else {
-                            log.debug("task:{},there are 【{}】 entries needed to be processed,batchId is {}...",
-                                    this.getClass().getSimpleName(), size, batchId);
                             List<CanalRowEvent> rowEventList = parseMessage(message);
+                            log.info(
+                                    "task:{},there are【{}】 entries,【{}】 canalRowEvents needed to be processed,batchId is {}...",
+                                    this.getClass().getSimpleName(), size, rowEventList.size(), batchId);
                             doProcess(rowEventList);
                         }
                         if (batchId != -1) {
@@ -118,14 +120,23 @@ public abstract class AbstractDataTransmitTask {
                 }
             } catch (Throwable e) {
                 log.error("dts task 【" + this.getClass().getSimpleName() + "】 process error!", e);
-                connector.rollback(); // 处理失败, 回滚数据
+                try {
+                    Thread.sleep(1000L);
+                    connector.rollback(); // 处理失败, 回滚数据
+                } catch (Exception e1) {
+                    log.error(" sync task catch Exception error!", e1);
+                }
             } finally {
-                connector.disconnect();
-                log.info("task:{},连接关闭....", this.getClass().getSimpleName());
-                MDC.remove("destination");
+                try {
+                    connector.disconnect();
+                    log.warn("task:{},连接关闭....,runnnig:{}", this.getClass().getSimpleName(), running.get());
+                    MDC.remove("destination");
+                } catch (Exception e2) {
+                    log.error("sync task finally error!", e2);
+                }
             }
         }
-        log.info("task:{} had been ended...", this.getClass());
+        log.info("task:{} had been ended...", this.getClass().getSimpleName());
         executorManager.countDown();
 
     }
